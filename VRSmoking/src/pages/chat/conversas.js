@@ -173,20 +173,20 @@ export default function Conversas({ navigation }) {
         //     } 
         // };
 
-        let socketIoClientConect = async () => {
+        // let socketIoClientConect = async () => {
             
-            const io = Base64.atob(await AsyncStorage.getItem('@socketIoClient'));
+        //     const io = Base64.atob(await AsyncStorage.getItem('@socketIoClient'));
 
-            //io.
+        //     //io.
 
-            console.log('IO Tela de Conversas: ', io);
+        //     console.log('IO Tela de Conversas: ', io);
 
-        };
+        // };
 
         checkLoggedUser();
         carregarConversas();
 
-        socketIoClientConect();
+        //socketIoClientConect();
 
     }, []);
 

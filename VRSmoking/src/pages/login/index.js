@@ -17,9 +17,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { TextInput } from 'react-native-paper';
 import { SocialIcon } from 'react-native-elements';
-import client_io from 'socket.io-client';
-
-import { Base64 } from 'js-base64';
 
 const LoginStack = createStackNavigator();
 
@@ -147,23 +144,6 @@ function login({ navigation }) {
                     await AsyncStorage.setItem('@usr_nivel', String(usr_nivel));
                     await AsyncStorage.setItem('@grp_id', String(grp_id));
                     await AsyncStorage.setItem('@calend_id', String(calend_id));
-
-                    
-                    
-        
-                    const io = client_io(URL.VRSMOKING_CHAT);
-    
-                    io.on('connect', () => {
-                        console.log('Estou Conectado');
-                    });
-
-                    
-                    
-                    console.log('IO antes: ', io);
-
-                    await AsyncStorage.setItem('@socketIoClient', Base64.encode(io));
-
-                    // Direcionar para a próxima página
 
                     navigation.navigate('Main');
 
