@@ -66,8 +66,7 @@ function login({ navigation }) {
         if (reg.test(email) === false) {
             console.log("Email is Not Correct");
             return false;
-        }
-        else {
+        } else {
             console.log("Email is Correct");
             return true;
         }

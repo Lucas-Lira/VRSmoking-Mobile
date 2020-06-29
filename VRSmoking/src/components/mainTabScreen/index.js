@@ -1,6 +1,4 @@
 import React from 'react';
-import { View } from 'react-native';
-
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 
@@ -14,7 +12,6 @@ import Home from '../../pages/home/';
 import Notifications from '../../pages/notificacoes/';
 import Profile from '../../pages/perfil/';
 import Explore from '../../pages/explore/';
-//import Chat from '../../pages/chat/';
 import Chat from '../topTabNavigator/chat';
 import School from '../../pages/school';
 
@@ -35,73 +32,76 @@ import configStyleJSON from '../../assets/styles/config/';
 const { colorStyle, iconStyle, metricStyle } = configStyleJSON;
 
 // Esse é o rodapé de baixo
-const MainTabScreen = () => (
-  <Tab.Navigator
-    initialRouteName="Home"
-    activeColor={colorStyle.primary}
-    headerTintColor={colorStyle.primary}
-  >
+const MainTabScreen = () => {
+  
+  return (
+    <Tab.Navigator
+      initialRouteName="Home"
+      activeColor={colorStyle.primary}
+      headerTintColor={colorStyle.primary}
+    >
+      <Tab.Screen
+        name="Home"
+        component={HomeStackScreen}
+        options={{
+          tabBarLabel: 'Principal',
+          tabBarColor: colorStyle.secondary,
+          tabBarIcon: (/*{ color }*/) => (
+            <Icon name="home" color={colorStyle.primary} size={iconStyle.size} />
+          ),
+        }}
+      />
+
     <Tab.Screen
-      name="Home"
-      component={HomeStackScreen}
+      name="School"
+      component={SchoolStackScreen}
       options={{
-        tabBarLabel: 'Principal',
+        tabBarLabel: 'Escola',
         tabBarColor: colorStyle.secondary,
         tabBarIcon: (/*{ color }*/) => (
-          <Icon name="home" color={colorStyle.primary} size={iconStyle.size} />
+          <Icon name="local-library" color={colorStyle.primary} size={iconStyle.size} />
         ),
       }}
     />
 
-  <Tab.Screen
-    name="School"
-    component={SchoolStackScreen}
-    options={{
-      tabBarLabel: 'Escola',
-      tabBarColor: colorStyle.secondary,
-      tabBarIcon: (/*{ color }*/) => (
-        <Icon name="local-library" color={colorStyle.primary} size={iconStyle.size} />
-      ),
-    }}
-  />
+      <Tab.Screen
+        name="Notifications"
+        component={NotificationsStackScreen}
+        options={{
+          tabBarLabel: 'Notificações',
+          tabBarColor: colorStyle.secondary,
+          tabBarIcon: (/*{ color }*/) => (
+            <Icon name="notifications" color={colorStyle.primary} size={iconStyle.size} />
+          ),
+        }}
+      />
 
-    <Tab.Screen
-      name="Notifications"
-      component={NotificationsStackScreen}
-      options={{
-        tabBarLabel: 'Notificações',
-        tabBarColor: colorStyle.secondary,
-        tabBarIcon: (/*{ color }*/) => (
-          <Icon name="notifications" color={colorStyle.primary} size={iconStyle.size} />
-        ),
-      }}
-    />
+      <Tab.Screen
+        name="Chat"
+        component={ChatStackScreen}
+        options={{
+          tabBarLabel: 'Chat',
+          tabBarColor: colorStyle.secondary,
+          tabBarIcon: (/*{ color }*/) => (
+            <Icon name="chat" color={colorStyle.primary} size={iconStyle.size} />
+          ),
+        }}
+      />
 
-    <Tab.Screen
-      name="Chat"
-      component={ChatStackScreen}
-      options={{
-        tabBarLabel: 'Chat',
-        tabBarColor: colorStyle.secondary,
-        tabBarIcon: (/*{ color }*/) => (
-          <Icon name="chat" color={colorStyle.primary} size={iconStyle.size} />
-        ),
-      }}
-    />
-
-    <Tab.Screen
-      name="Profile"
-      component={ProfileStackScreen}
-      options={{
-        tabBarLabel: 'Perfil',
-        tabBarColor: colorStyle.secondary,
-        tabBarIcon: (/*{ color }*/) => (
-          <Icon name="account-circle" color={colorStyle.primary} size={iconStyle.size} />
-        ),
-      }}
-    />
-  </Tab.Navigator>
-);
+      <Tab.Screen
+        name="Profile"
+        component={ProfileStackScreen}
+        options={{
+          tabBarLabel: 'Perfil',
+          tabBarColor: colorStyle.secondary,
+          tabBarIcon: (/*{ color }*/) => (
+            <Icon name="account-circle" color={colorStyle.primary} size={iconStyle.size} />
+          ),
+        }}
+      />
+    </Tab.Navigator>
+  )
+};
 
 export default MainTabScreen;
 
@@ -174,29 +174,55 @@ const ProfileStackScreen = ({ navigation }) => (
   </ProfileStack.Navigator>
 );
 
-const ChatStackScreen = ({ navigation }) => (
-  <ChatStack.Navigator screenOptions={{
-    headerStyle: {
-      backgroundColor: colorStyle.secondary,
-    },
-    headerTintColor: colorStyle.primary,
-    headerTitleStyle: {
-      fontWeight: 'bold'
-    }
-  }}>
+const ChatStackScreen = ({ navigation }) => {
 
-    <ChatStack.Screen name="Chat" component={Chat} options={{
-      title: 'Chat',
-      headerLeft: () => (
-        <Icon.Button name="reorder" size={iconStyle.size} color={colorStyle.primary} backgroundColor={colorStyle.secondary} onPress={() => navigation.openDrawer()}></Icon.Button>
-      ),
-      headerRight: () => (
-          <Icon.Button name="search" size={iconStyle.size} color={colorStyle.primary} backgroundColor={colorStyle.secondary} onPress={() => {  }} />
-      )
-    }}/>
+  return (
+    <ChatStack.Navigator 
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colorStyle.secondary,
+        },
+        headerTintColor: colorStyle.primary,
+        headerTitleStyle: {
+          fontWeight: 'bold'
+        }
+      }}
+    >
 
-  </ChatStack.Navigator>
-);
+        <ChatStack.Screen 
+          name="Chat"
+          component={Chat}
+          options={{
+            title: 'Chat',
+            headerLeft: () => (
+
+              <Icon.Button 
+                name="reorder" 
+                size={iconStyle.size} 
+                color={colorStyle.primary}
+                backgroundColor={colorStyle.secondary} 
+                onPress={() => navigation.openDrawer()}
+              ></Icon.Button>
+
+            ),
+            headerRight: () => (
+
+              <Icon.Button 
+                name="search" 
+                size={iconStyle.size} 
+                color={colorStyle.primary} 
+                backgroundColor={colorStyle.secondary} 
+                onPress={() => {  }} 
+              />
+
+            )
+          }}
+        />
+
+    </ChatStack.Navigator>
+  )
+
+};
 
 const SchoolStackScreen = ({ navigation }) => (
   <SchoolStack.Navigator screenOptions={{

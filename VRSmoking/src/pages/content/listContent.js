@@ -36,61 +36,13 @@ export default function ListContent({ route, navigation }) {
 
     useEffect(() => {
 
-        let loadContents = async () => {
-
-            try {
-
-                setVisibleModal('loading');
-
-                let erro = ``;
-
-                const response = await api.get(`/atividade/ObterCompletoPorId/${route.params.atividade}`);
-
-                if (response.data._mensagem) {
-                    erro = response.data._mensagem;
-                } else if (response.data._erros.length > 0) {
-                    erro = `Falha ao obter os conteúdos da atividade`;
-                } else {
-
-                    let result = response.data._result;
-
-                    if (result.length > 0) {
-
-                        let itens_atividade = result[0]._itens_atividade;
-                        let vetContents = [];
-                        
-                        let contador = 0;
-
-                        for (let i = 0; i < itens_atividade.length; i++)
-                            vetContents.push({ index: contador++, nomeArq: itens_atividade[i]._conteudo._titulo, dataUpload: itens_atividade[i]._conteudo._data_upload, url: URL.VRSMOKING_API + `/conteudo/obterArquivoPorIdeNome/`+ itens_atividade[i]._conteudo._id + `/` + itens_atividade[i]._conteudo._nome_arquivo, extension: String(itens_atividade[i]._conteudo._extensao).toLowerCase() });
- 
-                        setContents(vetContents);
-
-                    }
-
-                }
-
-                if (erro !== ``) {
-                    setMsgModal(erro);
-                    setVisibleModal(`danger`);
-                } else 
-                    setVisibleModal(``);
-
-            } catch (e) {
-                setMsgModal(`Falha ao obter os conteúdos da atividade`);
-                setVisibleModal(`danger`);
-            }
-            
-        }
-
-        if (String(route.name).toLowerCase() === `todos`)
-            loadContents();
+        // Validar se o usuário está logado...
         
     }, []);
 
     useEffect(() => {
 
-        const unsubscribe = navigation.addListener('tabPress', async e => {
+        const unsubscribe = navigation.addListener('focus', async e => {
 
             try {
 
@@ -173,7 +125,7 @@ export default function ListContent({ route, navigation }) {
 
             <ScrollView style={styles.scrollViewContainer}>
                 <View style={styles.viewContainerList}>
-                    {contents.map(content => (
+                    {contents.length > 0 && contents.map(content => (
 
                         <TouchableOpacity key={content.index} style={styles.buttonListItem} onPress={() => navigation.navigate('Viewer', {
                             uri: content.url, 

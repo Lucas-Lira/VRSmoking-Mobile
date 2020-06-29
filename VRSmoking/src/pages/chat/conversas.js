@@ -14,7 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Avatar } from 'react-native-paper';
 import Moment from 'moment';
 import { Base64 } from 'js-base64';
-//import client_io from 'socket.io-client';
+import client_io from 'socket.io-client';
 
 import serviceConfig from '../../services/config';
 const { URL } = serviceConfig;
@@ -30,54 +30,9 @@ import generalStyle from '../../assets/styles/general';
 import configStyleJSON from '../../assets/styles/config';
 const { colorStyle, iconStyle, metricStyle, fontStyle } = configStyleJSON;
 
-export default function Conversas({ navigation }) {
+export default function Conversas({ route, navigation }) {
 
-    const [conversations, setConversations] = useState([{
-        "_id": 18,
-        "_descricao": "Grupo 02/2020",
-        "_data_criacao": "2020-05-23T03:00:00.000Z",
-        "_data_fechamento": "2020-08-24T03:00:00.000Z",
-        "_calendario": {
-          "_id": 17,
-          "_titulo": "Calendário 2",
-          "_descricao": "Este Calendário Visa...",
-          "_list_fases": [],
-          "_list_atividades": []
-        },
-        "_list_grupo_participantes": [
-          {
-            "_grupo": {
-              "_id": 18,
-              "_descricao": "Grupo 02/2020",
-              "_data_criacao": "2020-05-23T03:00:00.000Z",
-              "_data_fechamento": "2020-08-24T03:00:00.000Z",
-              "_calendario": {
-                "_id": 17,
-                "_titulo": "Calendário 2",
-                "_descricao": "Este Calendário Visa...",
-                "_list_fases": [],
-                "_list_atividades": []
-              },
-              "_list_grupo_participantes": []
-            },
-            "_usuario": {
-              "_id": 11,
-              "_nome": "Monitor 1",
-              "_nivel_acesso": 1,
-              "_rg": "123456789",
-              "_cpf": "863.357.430-60",
-              "_data_nascimento": "1994-06-25T03:00:00.000Z",
-              "_genero": "Masculino",
-              "_nome_usuario": "usuario 1",
-              "_senha": "",
-              "_email": "usuario@gmail.com",
-              "_telefone_celular": "(11) 11111-1111",
-              "_token": 26,
-              "_endereco": ""
-            }
-          }
-        ]
-    }]);
+    const [conversations, setConversations] = useState([]);
     const [visibleModal, setVisibleModal] = useState(``);
     const [msgModal, setMsgModal] = useState(``);
 
@@ -104,91 +59,91 @@ export default function Conversas({ navigation }) {
         // Filtrar por nível de acesso
         let carregarConversas = async () => {
 
-            // setConversations([ {
-            //     "_id": 18,
-            //     "_descricao": "Grupo 02/2020",
-            //     "_data_criacao": "2020-05-23T03:00:00.000Z",
-            //     "_data_fechamento": "2020-08-24T03:00:00.000Z",
-            //     "_calendario": {
-            //       "_id": 17,
-            //       "_titulo": "Calendário 2",
-            //       "_descricao": "Este Calendário Visa...",
-            //       "_list_fases": [],
-            //       "_list_atividades": []
-            //     },
-            //     "_list_grupo_participantes": [
-            //       {
-            //         "_grupo": {
-            //           "_id": 18,
-            //           "_descricao": "Grupo 02/2020",
-            //           "_data_criacao": "2020-05-23T03:00:00.000Z",
-            //           "_data_fechamento": "2020-08-24T03:00:00.000Z",
-            //           "_calendario": {
-            //             "_id": 17,
-            //             "_titulo": "Calendário 2",
-            //             "_descricao": "Este Calendário Visa...",
-            //             "_list_fases": [],
-            //             "_list_atividades": []
-            //           },
-            //           "_list_grupo_participantes": []
-            //         },
-            //         "_usuario": {
-            //           "_id": 11,
-            //           "_nome": "Monitor 1",
-            //           "_nivel_acesso": 1,
-            //           "_rg": "123456789",
-            //           "_cpf": "863.357.430-60",
-            //           "_data_nascimento": "1994-06-25T03:00:00.000Z",
-            //           "_genero": "Masculino",
-            //           "_nome_usuario": "usuario 1",
-            //           "_senha": "",
-            //           "_email": "usuario@gmail.com",
-            //           "_telefone_celular": "(11) 11111-1111",
-            //           "_token": 26,
-            //           "_endereco": ""
-            //         }
-            //       }
-            //     ]
-            // } ]);
+            setConversations([{
+                "_id": 18,
+                "_descricao": "Grupo 02/2020",
+                "_data_criacao": "2020-05-23T03:00:00.000Z",
+                "_data_fechamento": "2020-08-24T03:00:00.000Z",
+                "_calendario": {
+                  "_id": 17,
+                  "_titulo": "Calendário 2",
+                  "_descricao": "Este Calendário Visa...",
+                  "_list_fases": [],
+                  "_list_atividades": []
+                },
+                "_list_grupo_participantes": [
+                  {
+                    "_grupo": {
+                      "_id": 18,
+                      "_descricao": "Grupo 02/2020",
+                      "_data_criacao": "2020-05-23T03:00:00.000Z",
+                      "_data_fechamento": "2020-08-24T03:00:00.000Z",
+                      "_calendario": {
+                        "_id": 17,
+                        "_titulo": "Calendário 2",
+                        "_descricao": "Este Calendário Visa...",
+                        "_list_fases": [],
+                        "_list_atividades": []
+                      },
+                      "_list_grupo_participantes": []
+                    },
+                    "_usuario": {
+                      "_id": 11,
+                      "_nome": "Monitor 1",
+                      "_nivel_acesso": 1,
+                      "_rg": "123456789",
+                      "_cpf": "863.357.430-60",
+                      "_data_nascimento": "1994-06-25T03:00:00.000Z",
+                      "_genero": "Masculino",
+                      "_nome_usuario": "usuario 1",
+                      "_senha": "",
+                      "_email": "usuario@gmail.com",
+                      "_telefone_celular": "(11) 11111-1111",
+                      "_token": 26,
+                      "_endereco": ""
+                    }
+                  }
+                ]
+            }]);
 
         };
-
-        // let socketIoClientConect = async () => {
-        //     try {
-
-        //         const io = client_io(URL.VRSMOKING_CHAT);
-
-        //         io.on('connect', () => {
-        //             console.log('Estou Conectado');
-        //         });
-                
-        //         //io.on('event', function(data){});
-
-        //         io.on('disconnect', () => {
-        //             console.log('Estou desconectado');
-        //         });
-
-        //     } catch (e) {
-        //         console.log('Erro na conexão com o socket')
-        //     } 
-        // };
-
-        // let socketIoClientConect = async () => {
-            
-        //     const io = Base64.atob(await AsyncStorage.getItem('@socketIoClient'));
-
-        //     //io.
-
-        //     console.log('IO Tela de Conversas: ', io);
-
-        // };
 
         checkLoggedUser();
         carregarConversas();
 
-        //socketIoClientConect();
-
     }, []);
+
+    useEffect(() => {
+
+        const unsubscribe = navigation.addListener('focus', async e => {
+
+            if(String(route.name).toLowerCase() === `conversas`) {
+
+                const usr_id = await AsyncStorage.getItem('@usr_id');
+                const grp_id = await AsyncStorage.getItem('@grp_id');
+
+                const io = client_io(URL.VRSMOKING_CHAT);
+
+                // Criando a conexão do socket com o servidor
+                io.on('connect', () => {
+
+                    io.on('receivingConversationScreenData', (data) => {
+
+                        
+
+                    });
+
+                    io.emit('connectionParams', { usr_id, grp_id, screen: "conversas" });
+
+                });
+        
+            }
+
+        });
+      
+        return unsubscribe;
+
+    }, [navigation]);
 
     return (
         <>
@@ -202,16 +157,16 @@ export default function Conversas({ navigation }) {
 
             <ScrollView style={styles.scrollViewContainer}>
                 <View style={styles.viewContainerList}>
-                    {conversations.map(conversas => (
+                    {conversations.length > 0 && conversations.map(conversas => (
                         <TouchableOpacity key={conversas._id + `g`} style={styles.buttonListItem} onPress={() => navigation.navigate('Mensagens') }>
                             <Item 
                                 contentName={conversas._descricao}
                                 imageUri={`https://reactnative.dev/img/tiny_logo.png`}
                                 obs={`Grupo tabagismo (${Moment(conversas._data_criacao).format('DD/MM/YYYY')} à ${Moment(conversas._data_fechamento).format('DD/MM/YYYY')})`}/>
                         </TouchableOpacity>
-                    ))}
+                    ))} 
 
-                    {conversations[0]._list_grupo_participantes.map(participantes => {
+                    {conversations.length > 0 && conversations[0]._list_grupo_participantes.map(participantes => {
 
                         if (participantes._usuario._nivel_acesso === 2) {
                             return (<TouchableOpacity key={participantes._usuario._id} style={styles.buttonListItem} onPress={() => navigation.navigate('Mensagens') }>
