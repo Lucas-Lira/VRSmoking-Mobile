@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../services/api';
+import Api from '../../services/api';
 import AsyncStorage from '@react-native-community/async-storage';
 import {
     View,
@@ -34,7 +34,7 @@ const { colorStyle, iconStyle, metricStyle } = configStyleJSON;
 import ModalInfo from '../../components/modal/info/index';
 import ModalDanger from '../../components/modal/danger/index';
 
-function login({ navigation }) {
+function login({ navigation, route }) {
 
     const [email, setEmail] = useState(``);
     const [senha, setSenha] = useState(``);
@@ -47,19 +47,35 @@ function login({ navigation }) {
     const [visibleModal, setVisibleModal] = useState(``);
     const [msgModal, setMsgModal] = useState(``);
 
-    useEffect(async () => {
+    useEffect(() => {
 
-        const usr_id = await AsyncStorage.getItem('@usr_id');
-
-        if (usr_id !== null) { // Usuário já está logado
-
-            // Validar se o teken do usuário está válido
-
-            navigation.navigate('Main');
-
-        }
-
-    }, []);
+        const unsubscribe = navigation.addListener('focus', e => {
+    
+          let checkLoggedUser = async () => {
+    
+            const token = await AsyncStorage.getItem('@usr_token');
+    
+            if(token) {
+    
+                const response = await Api.post('/usuario/mobile/verifyToken', {
+                    token
+                });
+    
+                if (!response.data._mensagem && response.data._erros.length === 0) 
+                    navigation.navigate('Main');
+                    
+                
+            }
+    
+          };
+    
+          checkLoggedUser();
+    
+        });
+    
+        return unsubscribe;
+    
+    }, [navigation]);
 
     isEmail = (email) => {
         let reg = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
@@ -102,7 +118,7 @@ function login({ navigation }) {
 
             if (validEmail && validSenha) {
 
-                const response = await api.post('/usuario/mobile/autenticar', {
+                const response = await Api.post('/usuario/mobile/autenticar', {
                     email: email,
                     password: senha
                 });
@@ -214,9 +230,9 @@ function login({ navigation }) {
                             blurOnSubmit={false}
 
                             underlineColor={colorStyle.default}
-                        //selectionColor={colorStyle.default}
-                        //underlineColorAndroid={colorStyle.default}
-                        //placeholderTextColor={colorStyle.primary}
+                            //selectionColor={colorStyle.default}
+                            //underlineColorAndroid={colorStyle.default}
+                            //placeholderTextColor={colorStyle.primary}
                         />
 
                         <Icon

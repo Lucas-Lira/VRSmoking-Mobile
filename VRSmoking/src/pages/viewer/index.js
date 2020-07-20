@@ -1,15 +1,51 @@
-import React from 'react';
-import { StyleSheet, Dimensions, Text, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { StyleSheet, Dimensions, Text, View, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
 import VideoPlayer from 'react-native-video-controls';
 import Pdf from 'react-native-pdf';
+import { StackActions } from '@react-navigation/native';
+import AsyncStorage from '@react-native-community/async-storage';
+import Api from '../../services/api';
+
+import configStyleJSON from '../../assets/styles/config';
+const { colorStyle } = configStyleJSON;
 
 const { width, height } = Dimensions.get('window');
 
  const Viewer = ({ route, navigation }) => {
 
+    useEffect(() => {
+
+        const unsubscribe = navigation.addListener('focus', e => {
+    
+          let checkLoggedUser = async () => {
+    
+            const token = await AsyncStorage.getItem('@usr_token');
+    
+            if(token) {
+    
+                const response = await Api.post('/usuario/mobile/verifyToken', {
+                    token
+                });
+    
+                if (response.data._mensagem || response.data._erros.length > 0) 
+                    navigation.navigate('Login');
+                
+            } else
+                navigation.navigate('Login');
+    
+          };
+    
+          checkLoggedUser();
+    
+        });
+    
+        return unsubscribe;
+    
+    }, [route]);
+
     return (
-        <View style={{ flex: 1, backgroundColor: 'red' }}>
+        <View style={{ flex: 1, backgroundColor: colorStyle.secondary }}>
             {
                 route.params.extension === '.pdf' ? 
                     <Pdf
@@ -46,7 +82,6 @@ export default Viewer;
 
 const styles = StyleSheet.create({
     pdf: {
-        //flex: 1,
         width: width,
         height: height,
     }

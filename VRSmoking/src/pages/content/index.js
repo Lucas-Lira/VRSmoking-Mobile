@@ -12,7 +12,7 @@ const { colorStyle, iconStyle } = configStyleJSON;
 // Stack Navigator
 const ContentsStack = createStackNavigator();
 
-const ContentsStackScreen = ({ navigation }) => {
+const ContentsStackScreen = ({ navigation, route }) => {
     return (
         <ContentsStack.Navigator screenOptions={{
             headerStyle: {
@@ -24,7 +24,7 @@ const ContentsStackScreen = ({ navigation }) => {
             }
         }}>
             <ContentsStack.Screen name="ContentsTab" component={ContentsTab} options={{
-                title: 'Conteúdos',
+                title: route.params.fase_descricao + ` / ` + route.params.atividade_titulo,
                 headerLeft: () => (
                     <Icon.Button name="reorder" size={25} color={colorStyle.primary} backgroundColor={colorStyle.secondary} onPress={() => navigation.openDrawer()}></Icon.Button>
                 ),

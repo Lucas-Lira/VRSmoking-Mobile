@@ -6,11 +6,13 @@ import {
     Text
 } from 'react-native';
 
-export default function notificacoes({ navigation }) {
+export default function notificacoes({ navigation, route }) {
 
   useEffect(() => {
 
-    let checkLoggedUser = async () => {
+    const unsubscribe = navigation.addListener('focus', e => {
+
+      let checkLoggedUser = async () => {
 
         const token = await AsyncStorage.getItem('@usr_token');
 
@@ -22,15 +24,19 @@ export default function notificacoes({ navigation }) {
 
             if (response.data._mensagem || response.data._erros.length > 0) 
                 navigation.navigate('Login');
-
+            
         } else
             navigation.navigate('Login');
 
-    };
+      };
 
-    checkLoggedUser();
+      checkLoggedUser();
 
-  }, []);
+    });
+
+    return unsubscribe;
+
+  }, [route]);
 
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

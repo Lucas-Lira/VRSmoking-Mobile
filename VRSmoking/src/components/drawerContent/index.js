@@ -1,4 +1,4 @@
-import React/*, { useEffect }*/ from 'react';
+import React from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage';
 import {
@@ -22,12 +22,6 @@ export function DrawerContent(props) {
 
     const [isDarkTheme, setIsDarkTheme] = React.useState(false);
 
-    // useEffect(() => {
-
-    //     Alert.alert('Renderizou');
-
-    // }, []);
-
     const toggleTheme = () => {
         setIsDarkTheme(!isDarkTheme);
     }
@@ -40,30 +34,30 @@ export function DrawerContent(props) {
                         <View style={{ flexDirection: 'row', marginTop: 15 }}>
                             <Avatar.Image
                                 source={{
-                                    uri: 'https://scontent-maa2-1.xx.fbcdn.net/v/t1.0-9/52944323_2091549364214714_3093923968491454464_n.jpg?_nc_cat=100&_nc_sid=7aed08&_nc_ohc=Pn8ws2O3PBQAX-AocWT&_nc_ht=scontent-maa2-1.xx&oh=862e49d69b74e8bd16f3b4166d4eda1e&oe=5E9B4BFE'
+                                    uri: 'https://cdn.pixabay.com/photo/2012/04/13/21/07/user-33638_960_720.png'
                                 }}
                                 size={50}
                             />
                             <View style={{ marginLeft: 15, flexDirection: 'column' }}>
-                                <Title style={styles.title}>Pradip Debnath</Title>
-                                <Caption style={styles.caption}>@itzpradip</Caption>
+                                <Title style={styles.title}>Usuário Logado</Title>
+                                <Caption style={styles.caption}>usuario@gmail.com</Caption>
                             </View>
                         </View>
 
                         <View style={styles.row}>
                             <View style={styles.section}>
+                                <Caption style={styles.caption}>Segue: </Caption>
                                 <Paragraph style={[styles.paragraph, styles.caption]}>80</Paragraph>
-                                <Caption style={styles.caption}>Following</Caption>
                             </View>
                             <View style={styles.section}>
+                                <Caption style={styles.caption}>Seguidores: </Caption>
                                 <Paragraph style={[styles.paragraph, styles.caption]}>100</Paragraph>
-                                <Caption style={styles.caption}>Followers</Caption>
                             </View>
                         </View>
                     </View>
 
                     <Drawer.Section style={styles.drawerSection}>
-                        <DrawerItem
+                        {/* <DrawerItem
                             icon={({ color, size }) => (
                                 <Icon
                                     name="home-outline"
@@ -73,7 +67,7 @@ export function DrawerContent(props) {
                             )}
                             label="Home"
                             onPress={() => { props.navigation.navigate('Home') }}
-                        />
+                        /> */}
                         <DrawerItem
                             icon={({ color, size }) => (
                                 <Icon
@@ -85,7 +79,7 @@ export function DrawerContent(props) {
                             label="Login"
                             onPress={() => { props.navigation.navigate('Login') }}
                         />
-                        <DrawerItem
+                        {/* <DrawerItem
                             icon={({ color, size }) => (
                                 <Icon
                                     name="bookmark-outline"
@@ -93,10 +87,10 @@ export function DrawerContent(props) {
                                     size={size}
                                 />
                             )}
-                            label="Bookmarks"
+                            label="Favoritos"
                             onPress={() => { props.navigation.navigate('BookmarkScreen') }}
-                        />
-                        <DrawerItem
+                        /> */}
+                        {/* <DrawerItem
                             icon={({ color, size }) => (
                                 <Icon
                                     name="settings-outline"
@@ -104,9 +98,9 @@ export function DrawerContent(props) {
                                     size={size}
                                 />
                             )}
-                            label="Settings"
+                            label="Configurações"
                             onPress={() => { props.navigation.navigate('SettingScreen') }}
-                        />
+                        /> */}
                         <DrawerItem
                             icon={({ color, size }) => (
                                 <Icon
@@ -115,14 +109,14 @@ export function DrawerContent(props) {
                                     size={size}
                                 />
                             )}
-                            label="Support"
-                            onPress={() => { props.navigation.navigate('SupportScreen') }}
+                            label="Manual do Sistema"
+                            onPress={() => { props.navigation.navigate('Manual') }}
                         />
                     </Drawer.Section>
-                    <Drawer.Section title="Preferences">
+                    <Drawer.Section title="Preferências">
                         <TouchableRipple onPress={() => { toggleTheme() }}>
                             <View style={styles.preference}>
-                                <Text>Dark Theme</Text>
+                                <Text>Tema Escuro</Text>
                                 <View pointerEvents="none">
                                     <Switch value={isDarkTheme} />
                                 </View>
@@ -140,7 +134,7 @@ export function DrawerContent(props) {
                             size={size}
                         />
                     )}
-                    label="Sign Out"
+                    label="Sair"
                     onPress={async () => { 
 
                         await AsyncStorage.removeItem('@usr_id');
@@ -149,7 +143,8 @@ export function DrawerContent(props) {
                         await AsyncStorage.removeItem('@usr_nivel');
                         await AsyncStorage.removeItem('@grp_id');
                         await AsyncStorage.removeItem('@calend_id');
-                        await AsyncStorage.removeItem('@socketIoClient');
+                        
+                        props.navigation.navigate('Login');
 
                     }}
                 />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, createRef } from 'react';
 import { 
   View,
   Text,
@@ -8,262 +8,219 @@ import {
   TouchableOpacity,
   TextInput
 } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
+import AsyncStorage from '@react-native-community/async-storage';
+
+import client_io from 'socket.io-client';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-//import { TextInput } from 'react-native-paper';
+import Moment from 'moment';
+
+// Importações para manipulação do REDUX
+// ===================================================================
+import { connect } from 'react-redux';
+// ===================================================================
+
+import Api from '../../services/api';
+import serviceConfig from '../../services/config';
+const { URL } = serviceConfig;
+
+// Importanto as Modais
+import ModalDanger from '../../components/modal/danger/';
+import ModalLoading from '../../components/modal/loading/';
 
 // Importando estilos
 import configStyleJSON from '../../assets/styles/config';
-//import generalStyle from '../../assets/styles/general';
 const { colorStyle, iconStyle, metricStyle, fontStyle } = configStyleJSON;
 
 const { width, height } = Dimensions.get('window');
 
-const Mensagem = () => {
+var io = null;
 
-  const [messages, setMessages] = useState([{
-    id: 1,
-    mensagem: 'Teste gfdgdfg'
-  },
-  {
-    id: 2,
-    mensagem: 'Teste ggdf gdfgdfg fdgdfgdfggdf',
-    usuario: 1,
-  }
-  ,
-  {
-    id: 3,
-    mensagem: 'Testefdg gdfgdf gdf gfdgdfgf',
-    usuario: 2,
-  }
-  ,
-  {
-    id: 4,
-    mensagem: 'Testetwttertertertr',
-    usuario: 1,
-  }
-  ,
-  {
-    id: 5,
-    mensagem: 'Teste fsdfsdfsdfsdfs',
-    usuario: 1,
-  }
-  ,
-  {
-    id: 6,
-    mensagem: 'Testefsdfsdfsdfsdfsd',
-    usuario: 1,
-  }
-  ,
-  {
-    id: 7,
-    mensagem: 'Teste ffdsfsdfsd',
-    usuario: 2,
-  }
-  ,
-  {
-    id: 8,
-    mensagem: 'Testedsfsdfsd',
-    usuario: 2,
-  }
-  ,
-  {
-    id: 9,
-    mensagem: 'Testefsdfsdfsd',
-    usuario: 1,
-  }
-  ,
-  {
-    id: 10,
-    mensagem: 'Testefsdf ',
-    usuario: 2,
-  }
-  ,
-  {
-    id: 11,
-    mensagem: 'Testefsdfsdfsdfsdfsdfsdfsd',
-    usuario: 2,
-  }
-  ,
-  {
-    id: 12,
-    mensagem: 'Teste fsdfsff',
-    usuario: 1,
-  }
-  ,
-  {
-    id: 13,
-    mensagem: 'Teste fsd',
-    usuario: 1,
-  }
-  ,
-  {
-    id: 14,
-    mensagem: 'Teste fsdf',
-    usuario: 1,
-  }
-  ,
-  {
-    id: 15,
-    mensagem: 'Teste fsfsdfsdfsdfsdfsd',
-    usuario: 2, 
-  }
-  ,
-  {
-    id: 16,
-    mensagem: 'Teste fs',
-    usuario: 1,
-  }
-  ,
-  {
-    id: 17,
-    mensagem: 'Testefsd',
-    usuario: 2,
-  }
-  ,
-  {
-    id: 18,
-    mensagem: 'Teste fsfdfsdfsdfsd ',
-    usuario: 1,
-  }
-  ,
-  {
-    id: 19,
-    mensagem: 'Teste fsdfsd',
-    usuario: 1,
-  }]);
+const Mensagem = ({ route, navigation }) => {
+
+  this.myScroll = createRef();
+
+  const [messages, setMessages] = useState([]);
   const [msgSend, setMsgSend] = useState(``);
-  const [validationMsgSend, setValidationMsgSend] = useState(``);
+  const [visibleModal, setVisibleModal] = useState(``);
+  const [msgModal, setMsgModal] = useState(``);
 
   useEffect(() => {
 
-    const listarMensagens = () => {
+    setMessages([]);
+
+    const unsubscribe = navigation.addListener('focus', (evento) => {
+
+      let chatConnection = () => {
+
+        try {
+
+          // const usr_id = await AsyncStorage.getItem('@usr_id');
+          // const grp_id = await AsyncStorage.getItem('@grp_id');
+
+          const usr_id = route.params.usr_id;
+          const grp_id = route.params.grp_id;
+    
+          io = client_io(URL.VRSMOKING_CHAT);
+    
+          // Criando a conexão do socket com o servidor
+          io.on('connect', () => {
+    
+            io.emit('connectionParams', { usr_id, grp_id, screen: "mensagens" });
+    
+            io.on('receivingMessageScreenData', (data) => {
+    
+              let renderMessage = async () => {
+
+                if (!data._mensagem) {
+   
+                  let result = data._result;
+                  let vet_mensagens = [];
+                  let list_mensagens_update = [];
+                  let tipoUsuario = 0;
+                  let data_entrega = null;
+                  
+                  for (let i = 0; i < result.length; i++) {
+
+                    // Alterar o estado da mensagem, caso o destino for este usuário
+
+                    if (result[i]._usuario_origem._id === parseInt(usr_id))
+                      tipoUsuario = 1;
+                    else {
+
+                      tipoUsuario = 2;
+
+                      if (result[i]._entregue === 'N' && ((result[i]._usuario_destino && parseInt(result[i]._usuario_destino._id) === parseInt(usr_id)) || (result[i]._grupo_destino && parseInt(result[i]._grupo_destino._id) === parseInt(grp_id)))) // Não foi entregue nem visualizado
+                      {
+
+                        list_mensagens_update.push({
+                          _id: result[i]._id,
+                          _data_entrega: Moment().format('YYYY-MM-DD hh:mm:ss'),
+                          _entregue: 'S',
+                          _visualizado: 'S'
+                        });
+
+                        data_entrega = Moment().format('YYYY-MM-DD hh:mm:ss');
+
+                      } else { // Foi entregue
+
+                        if (result[i]._visualizado === 'N' && ((result[i]._usuario_destino && parseInt(result[i]._usuario_destino._id) === parseInt(usr_id)) || (result[i]._grupo_destino && parseInt(result[i]._grupo_destino._id) === parseInt(grp_id)))) { // Não foi visualizado
+
+                          list_mensagens_update.push({
+                            _id: result[i]._id,
+                            _data_entrega: result[i]._data_entrega,
+                            _entregue: result[i]._entregue,
+                            _visualizado: 'S'
+                          });
+
+                        }
+
+                        data_entrega = result[i]._data_entrega;
+
+                      }
+
+                    }
+
+                    vet_mensagens.push({
+                      id: result[i]._id,
+                      nome_usuario_origem: result[i]._usuario_origem._nome_usuario,
+                      mensagem: result[i]._mensagem,
+                      data_envio: result[i]._data_envio,
+                      data_entrega,
+                      entregue: `S`,
+                      visualizado: `S`,
+                      tipoUsuario
+                    });
+
+                  }
+
+                  setMessages(vet_mensagens);
+
+                  // FAzer requisição para alteração dos dados
+                  io.emit('atualizarListadeMensagens', list_mensagens_update);
+
+                } else {
+                    setMsgModal(data._mensagem);
+                    setVisibleModal('danger');
+                }
+
+              };
+
+              renderMessage();
+
+            });
+    
+            // Enviando dados para a busca das mensagens
+            io.emit('connectionParamsMessages', { origem: usr_id, destino: route.params.codDestino, tipoDestino: route.params.tipoDestino });
+    
+          });
+    
+        } catch (e) {
+          console.log('Falha na conexão com o socket na tela de mensagens')
+        }
+    
+      };
+    
+
+      let checkLoggedUser = async () => {
+
+        const token = await AsyncStorage.getItem('@usr_token');
+
+        if(token) {
+
+            const response = await Api.post('/usuario/mobile/verifyToken', {
+                token
+            });
+
+            if (response.data._mensagem || response.data._erros.length > 0) 
+                navigation.navigate('Login');
+            else
+              chatConnection();
+
+        } else
+            navigation.navigate('Login');
+
+      };
+
+      checkLoggedUser();
+
+    });
+
+    return unsubscribe;
   
-      try {
-  
-        setMessages([
-          {
-            id: 1,
-            mensagem: 'Teste gfdgdfg'
-          },
-          {
-            id: 2,
-            mensagem: 'Teste ggdf gdfgdfg fdgdfgdfggdf',
-            usuario: 1,
-          }
-          ,
-          {
-            id: 3,
-            mensagem: 'Testefdg gdfgdf gdf gfdgdfgf',
-            usuario: 2,
-          }
-          ,
-          {
-            id: 4,
-            mensagem: 'Testetwttertertertr',
-            usuario: 1,
-          }
-          ,
-          {
-            id: 5,
-            mensagem: 'Teste fsdfsdfsdfsdfs',
-            usuario: 1,
-          }
-          ,
-          {
-            id: 6,
-            mensagem: 'Testefsdfsdfsdfsdfsd',
-            usuario: 1,
-          }
-          ,
-          {
-            id: 7,
-            mensagem: 'Teste ffdsfsdfsd',
-            usuario: 2,
-          }
-          ,
-          {
-            id: 8,
-            mensagem: 'Testedsfsdfsd',
-            usuario: 2,
-          }
-          ,
-          {
-            id: 9,
-            mensagem: 'Testefsdfsdfsd',
-            usuario: 1,
-          }
-          ,
-          {
-            id: 10,
-            mensagem: 'Testefsdf ',
-            usuario: 2,
-          }
-          ,
-          {
-            id: 11,
-            mensagem: 'Testefsdfsdfsdfsdfsdfsdfsd',
-            usuario: 2,
-          }
-          ,
-          {
-            id: 12,
-            mensagem: 'Teste fsdfsff',
-            usuario: 1,
-          }
-          ,
-          {
-            id: 13,
-            mensagem: 'Teste fsd',
-            usuario: 1,
-          }
-          ,
-          {
-            id: 14,
-            mensagem: 'Teste fsdf',
-            usuario: 1,
-          }
-          ,
-          {
-            id: 15,
-            mensagem: 'Teste fsfsdfsdfsdfsdfsd',
-            usuario: 2, 
-          }
-          ,
-          {
-            id: 16,
-            mensagem: 'Teste fs',
-            usuario: 1,
-          }
-          ,
-          {
-            id: 17,
-            mensagem: 'Testefsd',
-            usuario: 2,
-          }
-          ,
-          {
-            id: 18,
-            mensagem: 'Teste fsfdfsdfsdfsd ',
-            usuario: 1,
-          }
-          ,
-          {
-            id: 19,
-            mensagem: 'Teste fsdfsd',
-            usuario: 1,
-          }
-        ]);
-  
-      } catch (e) {
-  
-      }
-  
+  }, [route]);
+
+  useEffect(() => {
+
+    let autoScrollView = () => {
+      this.myScroll.current.scrollToEnd({ animated: false });
     };
-  
-    listarMensagens();
-  
-  }, []);
+
+    autoScrollView();
+    
+  }, [messages]);
+
+  let sendMessage = async () => {
+
+    try {
+
+      const usr_id = await AsyncStorage.getItem('@usr_id');
+      const grp_id = await AsyncStorage.getItem('@grp_id');
+
+      io.emit('sendMessage', { 
+        origem: usr_id,
+        destino: route.params.codDestino,
+        tipoDestino: route.params.tipoDestino,
+        msg: msgSend,
+        grupo: grp_id
+      });
+
+      setMsgSend(``);
+
+    } catch (e) {
+      console.log('Falha ao enviar mensagem (tela de mensagens)');
+    }
+
+  };
 
   return (
       <>
@@ -271,26 +228,29 @@ const Mensagem = () => {
         <View style={styles.viewContainer}>
             <View style={metricStyle.flexRow}>
                 <View style={styles.viewContainerColumn}>
-                    <Text style={styles.textTypeContent}>Fale sobre seu progresso</Text>
+                  <Text style={styles.textTypeContent}>Fale sobre seu progresso</Text>
                 </View>
             </View>
         </View>
 
-        <ScrollView style={styles.scrollViewContainer}>
-
-          {messages.map(menssage => {
+        <ScrollView 
+          style={styles.scrollViewContainer}
+          ref={this.myScroll}>
+          { messages.length > 0 && messages.map(menssage => {
 
             let pAlign = '';
 
-            if (menssage.usuario === 1)
+            if (menssage.tipoUsuario === 1)
               pAlign = 'flex-end';
             else
               pAlign = 'flex-start';
 
             return (<View key={menssage.id} style={{ width: width * 0.9, alignItems: pAlign }}>
               <Texto
-                mensagem={menssage.mensagem} />
+                mensagem={menssage.mensagem}
+                nomeUsuarioOrigem={menssage.nome_usuario_origem} />
             </View>);
+
           })}
 
         </ScrollView>
@@ -300,13 +260,10 @@ const Mensagem = () => {
           <TextInput
               mode="outlined"
               style={styles.textInputPrimary}
-              //error={setValidationMsgSend !== ''}
               inlineImageLeft='mood'
               inlineImagePadding={iconStyle.inlineImagePadding}
               placeholder="Digite uma mensagem..."
               value={msgSend}
-              //selectionColor={colorStyle.primary}
-              //keyboardType={'email-address'}
               onChangeText={setMsgSend}
               returnKeyType={"next"}
               blurOnSubmit={false}
@@ -314,6 +271,7 @@ const Mensagem = () => {
           />
 
           <TouchableOpacity
+            onPress={() => sendMessage()}
             style={styles.btnSend}>
                <Icon
                 name='send' // close
@@ -324,6 +282,18 @@ const Mensagem = () => {
            
         </View>
 
+        <ModalDanger
+            visible={visibleModal === 'danger'}
+            title={'ERRO'}
+            mesage={msgModal}
+            functionBtnOK={() => setVisibleModal(``)}
+        />
+
+        <ModalLoading 
+            visible={visibleModal === `loading`}
+            title={`Aguarde, carregando ...`}
+        />
+
       </>
   );
 }
@@ -333,10 +303,21 @@ function Texto(props) {
   let pWidth = 0;
   let pHeight = 0;
 
-  if (props.mensagem.length > 46)
-    pWidth = width * 0.75
-  else
-    pWidth = ((props.mensagem.length * 0.015) + 0.05) * width;
+  if (props.mensagem.length > props.nomeUsuarioOrigem.length) {
+    if (props.mensagem.length > 46)
+      pWidth = width * 0.75
+    else
+      pWidth = ((props.mensagem.length * 0.015) + 0.05) * width;
+  } else {
+
+    if (props.nomeUsuarioOrigem.length > 46)
+      pWidth = width * 0.75
+    else
+      pWidth = ((props.nomeUsuarioOrigem.length * 0.015) + 0.05) * width;
+      
+  }
+
+  pWidth += 5;
 
   return (
       <View style={{ 
@@ -347,10 +328,20 @@ function Texto(props) {
         alignItems: 'center',
         justifyContent: "center",
         padding: 3 }}>
+          <Text style={styles.textoNomeOrigem}>{props.nomeUsuarioOrigem}</Text>
           <Text style={styles.textoMensagem}>{props.mensagem}</Text>
       </View>
   );
 }
+
+const mapStateToProps = state => {
+  return ({
+    io: state.ChatMessage.io,
+    messages: state.ChatMessage.messages,
+  })
+};
+
+export default connect(mapStateToProps)(Mensagem);
 
 const styles = StyleSheet.create({
   btnSend: {
@@ -423,59 +414,23 @@ const styles = StyleSheet.create({
       marginLeft: 3,
       fontWeight: 'bold'
   },
-  // viewContainerTextoMensagem: {
-  //   height: 30,
-  //   backgroundColor: colorStyle.primary,
-  //   borderRadius: 2,
-  //   marginBottom: 10,
-  //   alignItems: 'flex-end',
-  //   justifyContent: "center",
-  // },
+  textoNomeOrigem: {
+    color: colorStyle.tertiary,
+    fontSize: 13,
+    fontWeight: 'bold',
+    fontFamily: fontStyle.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    textAlign: 'center',
+    borderRadius: 4,
+  },
   textoMensagem: {
     color: colorStyle.secondary,
     fontSize: 13,
     fontFamily: fontStyle.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    //backgroundColor: 'red',
     textAlign: 'center',
     borderRadius: 4,
   }
-
 });
-
-// Stack Navigator
-// ===========================================
-const MensagemStack = createStackNavigator();
-
-const MensagemStackScreen = ({ navigation }) => {
-    return (
-        <MensagemStack.Navigator screenOptions={{
-            headerStyle: {
-                backgroundColor: colorStyle.secondary,
-            },
-            headerTintColor: colorStyle.primary,
-            headerTitleStyle: {
-                fontWeight: 'bold'
-            }
-        }}>
-
-            <MensagemStack.Screen name="Mensagens" component={Mensagem} options={{
-                title: 'Mensagens',
-                headerLeft: () => (
-                    <Icon.Button name="arrow-back" size={25} color={colorStyle.primary} backgroundColor={colorStyle.secondary} onPress={() => navigation.goBack()}></Icon.Button>
-                ),
-                headerRight: () => (
-                  <View style={{ flexDirection: 'row' }}>
-                    <Icon.Button name="videocam" size={iconStyle.size} color={colorStyle.primary} backgroundColor={colorStyle.secondary} onPress={() => {  }} />
-                    <Icon.Button name="call" size={iconStyle.size} color={colorStyle.primary} backgroundColor={colorStyle.secondary} onPress={() => {  }} />
-                    <Icon.Button name="more-vert" size={iconStyle.size} color={colorStyle.primary} backgroundColor={colorStyle.secondary} onPress={() => {  }} />
-                  </View>
-                )
-            }} />
-
-        </MensagemStack.Navigator>
-    );
-}
-
-export default MensagemStackScreen;

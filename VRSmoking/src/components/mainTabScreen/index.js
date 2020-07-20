@@ -3,33 +3,24 @@ import { createMaterialBottomTabNavigator } from '@react-navigation/material-bot
 import { createStackNavigator } from '@react-navigation/stack';
 
 import Icon from 'react-native-vector-icons/MaterialIcons'; //Ionicons
-//import Lottie from 'lottie-react-native';
-
-// Importando animações
-import houseAnimation from '../../assets/animations/house.json';
 
 import Home from '../../pages/home/';
 import Notifications from '../../pages/notificacoes/';
 import Profile from '../../pages/perfil/';
-import Explore from '../../pages/explore/';
 import Chat from '../topTabNavigator/chat';
 import School from '../../pages/school';
 
 const HomeStack = createStackNavigator();
 const NotificationsStack = createStackNavigator();
 const ProfileStack = createStackNavigator();
-// const ExploreStack = createStackNavigator();
 const ChatStack = createStackNavigator();
 const SchoolStack = createStackNavigator();
-
-//const DetailsStack = createStackNavigator();
 
 const Tab = createMaterialBottomTabNavigator();
 
 // Importando estilos
-import generalStyle from '../../assets/styles/general/';
 import configStyleJSON from '../../assets/styles/config/';
-const { colorStyle, iconStyle, metricStyle } = configStyleJSON;
+const { colorStyle, iconStyle } = configStyleJSON;
 
 // Esse é o rodapé de baixo
 const MainTabScreen = () => {

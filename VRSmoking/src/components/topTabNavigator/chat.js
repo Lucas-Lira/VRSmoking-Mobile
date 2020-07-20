@@ -15,19 +15,16 @@ import Ajuda from "../../pages/chat/ajuda";
       <ContentTopTabNavigator.Screen 
           name="Conversas"
           component={Conversas}
-          //initialParams={{ io: io }}
       />
 
       <ContentTopTabNavigator.Screen 
           name="Status" 
           component={Status}
-          //initialParams={{ io: io }} 
       />
 
       <ContentTopTabNavigator.Screen 
           name="Ajuda"
-          component={Ajuda} 
-          //initialParams={{ io: io }}
+          component={Ajuda}
       />
 
     </ContentTopTabNavigator.Navigator>

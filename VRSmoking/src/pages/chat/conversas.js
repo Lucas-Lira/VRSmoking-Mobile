@@ -7,14 +7,17 @@ import {
   Text,
   Dimensions,
   ScrollView,
-  TouchableOpacity,
-  Alert
+  TouchableOpacity
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
 import { Avatar } from 'react-native-paper';
 import Moment from 'moment';
-import { Base64 } from 'js-base64';
 import client_io from 'socket.io-client';
+
+// Importações para manipulação dos estados com REDUX
+// ===================================================================
+import { connect } from 'react-redux';
+import { carregaMensagens } from '../../actions/chatMessage';
+// ===================================================================
 
 import serviceConfig from '../../services/config';
 const { URL } = serviceConfig;
@@ -26,11 +29,13 @@ import ModalLoading from '../../components/modal/loading/';
 const { width, height } = Dimensions.get('window');
 
 // Importando estilos
-import generalStyle from '../../assets/styles/general';
 import configStyleJSON from '../../assets/styles/config';
-const { colorStyle, iconStyle, metricStyle, fontStyle } = configStyleJSON;
+const { colorStyle, metricStyle, fontStyle } = configStyleJSON;
 
-export default function Conversas({ route, navigation }) {
+var usuarioLogado = 0;
+let chatConnect = null; 
+
+const Conversas = ({ route, navigation, carregaMensagens }) => {
 
     const [conversations, setConversations] = useState([]);
     const [visibleModal, setVisibleModal] = useState(``);
@@ -38,112 +43,75 @@ export default function Conversas({ route, navigation }) {
 
     useEffect(() => {
 
-        let checkLoggedUser = async () => {
+        const unsubscribe = navigation.addListener('focus', e => {
 
-            const token = await AsyncStorage.getItem('@usr_token');
+            chatConnect = async () => {
 
-            if(token) {
+                if(String(route.name).toLowerCase() === `conversas`) {
 
-                const response = await api.post('/usuario/mobile/verifyToken', {
-                    token
-                });
+                    const usr_id = await AsyncStorage.getItem('@usr_id');
+                    const grp_id = await AsyncStorage.getItem('@grp_id');
+    
+                    const io = client_io(URL.VRSMOKING_CHAT);
+    
+                    console.log('Fez a chamada ao chat', URL.VRSMOKING_CHAT)
 
-                if (response.data._mensagem || response.data._erros.length > 0) 
-                    navigation.navigate('Login');
-
-            } else
-                navigation.navigate('Login');
-
-        };
-
-        // Filtrar por nível de acesso
-        let carregarConversas = async () => {
-
-            setConversations([{
-                "_id": 18,
-                "_descricao": "Grupo 02/2020",
-                "_data_criacao": "2020-05-23T03:00:00.000Z",
-                "_data_fechamento": "2020-08-24T03:00:00.000Z",
-                "_calendario": {
-                  "_id": 17,
-                  "_titulo": "Calendário 2",
-                  "_descricao": "Este Calendário Visa...",
-                  "_list_fases": [],
-                  "_list_atividades": []
-                },
-                "_list_grupo_participantes": [
-                  {
-                    "_grupo": {
-                      "_id": 18,
-                      "_descricao": "Grupo 02/2020",
-                      "_data_criacao": "2020-05-23T03:00:00.000Z",
-                      "_data_fechamento": "2020-08-24T03:00:00.000Z",
-                      "_calendario": {
-                        "_id": 17,
-                        "_titulo": "Calendário 2",
-                        "_descricao": "Este Calendário Visa...",
-                        "_list_fases": [],
-                        "_list_atividades": []
-                      },
-                      "_list_grupo_participantes": []
-                    },
-                    "_usuario": {
-                      "_id": 11,
-                      "_nome": "Monitor 1",
-                      "_nivel_acesso": 1,
-                      "_rg": "123456789",
-                      "_cpf": "863.357.430-60",
-                      "_data_nascimento": "1994-06-25T03:00:00.000Z",
-                      "_genero": "Masculino",
-                      "_nome_usuario": "usuario 1",
-                      "_senha": "",
-                      "_email": "usuario@gmail.com",
-                      "_telefone_celular": "(11) 11111-1111",
-                      "_token": 26,
-                      "_endereco": ""
-                    }
-                  }
-                ]
-            }]);
-
-        };
-
-        checkLoggedUser();
-        carregarConversas();
-
-    }, []);
-
-    useEffect(() => {
-
-        const unsubscribe = navigation.addListener('focus', async e => {
-
-            if(String(route.name).toLowerCase() === `conversas`) {
-
-                const usr_id = await AsyncStorage.getItem('@usr_id');
-                const grp_id = await AsyncStorage.getItem('@grp_id');
-
-                const io = client_io(URL.VRSMOKING_CHAT);
-
-                // Criando a conexão do socket com o servidor
-                io.on('connect', () => {
-
-                    io.on('receivingConversationScreenData', (data) => {
-
-                        
-
+                    // Criando a conexão do socket com o servidor
+                    io.on('connect', () => {
+    
+                        io.on('receivingConversationScreenData', (data) => {
+    
+                            if (!data._mensagem) {
+                                setConversations(data._result);
+                            } else {
+                                setMsgModal(data._mensagem);
+                                setVisibleModal('danger');
+                            }
+    
+                        });
+    
+                        io.emit('connectionParams', { usr_id, grp_id, screen: "conversas" });
+    
                     });
+            
+                }
 
-                    io.emit('connectionParams', { usr_id, grp_id, screen: "conversas" });
+            };
 
-                });
-        
-            }
+            let checkLoggedUser = async () => {
 
+                const token = await AsyncStorage.getItem('@usr_token');
+    
+                if(token) {
+    
+                    const response = await api.post('/usuario/mobile/verifyToken', {
+                        token
+                    });
+    
+                    if (response.data._mensagem || response.data._erros.length > 0) 
+                        navigation.navigate('Login');
+                    else {
+
+                        usuarioLogado = await AsyncStorage.getItem('@usr_id');
+
+                        if (chatConnect) {
+                            chatConnect();
+                        }
+
+                    }
+    
+                } else
+                    navigation.navigate('Login');
+    
+            };
+    
+            checkLoggedUser();
+    
         });
       
         return unsubscribe;
 
-    }, [navigation]);
+    }, [route]);
 
     return (
         <>
@@ -158,24 +126,65 @@ export default function Conversas({ route, navigation }) {
             <ScrollView style={styles.scrollViewContainer}>
                 <View style={styles.viewContainerList}>
                     {conversations.length > 0 && conversations.map(conversas => (
-                        <TouchableOpacity key={conversas._id + `g`} style={styles.buttonListItem} onPress={() => navigation.navigate('Mensagens') }>
+                        <TouchableOpacity key={conversas._id + `g`} style={ conversas._possui_novas_mensagens === 'S' ? styles.buttonListItemWithMessage : styles.buttonListItem } onPress={async () => {
+                            
+                            const usr_id = await AsyncStorage.getItem('@usr_id');
+                            const grp_id = await AsyncStorage.getItem('@grp_id');
+
+                            carregaMensagens(usr_id, grp_id, conversas._id, 'grupo');
+
+                            navigation.navigate('Mensagens', {
+                                page_title: conversas._descricao,
+                                screen: 'Mensagens',
+                                params: {
+                                    usr_id,
+                                    grp_id,
+                                    codDestino: conversas._id,
+                                    tipoDestino: 'grupo'
+                                }
+                            });
+
+                        }}>
                             <Item 
                                 contentName={conversas._descricao}
-                                imageUri={`https://reactnative.dev/img/tiny_logo.png`}
+                                imageUri={`https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQAin4VI1JuWoD-4PaDeVvZSCK9tEg7oC5yUg&usqp=CAU`}
+                                withMessage={conversas._possui_novas_mensagens}
                                 obs={`Grupo tabagismo (${Moment(conversas._data_criacao).format('DD/MM/YYYY')} à ${Moment(conversas._data_fechamento).format('DD/MM/YYYY')})`}/>
                         </TouchableOpacity>
                     ))} 
 
                     {conversations.length > 0 && conversations[0]._list_grupo_participantes.map(participantes => {
 
-                        if (participantes._usuario._nivel_acesso === 2) {
-                            return (<TouchableOpacity key={participantes._usuario._id} style={styles.buttonListItem} onPress={() => navigation.navigate('Mensagens') }>
-                                        <Item 
-                                            contentName={participantes._usuario._nome}
-                                            imageUri={`https://reactnative.dev/img/tiny_logo.png`}
-                                            obs={`${parseInt(participantes._usuario._nivel_acesso) === 1 ? 'Monitor' : 'Paciente'}`}/>
-                                    </TouchableOpacity>);
-                        }
+                        if (participantes._usuario._nivel_acesso === 2 && participantes._usuario._id != usuarioLogado) {
+
+                            return (<TouchableOpacity key={participantes._usuario._id} style={ participantes._usuario._possui_novas_mensagens === 'S' ? styles.buttonListItemWithMessage : styles.buttonListItem } onPress={async () => {
+                                
+                                const usr_id = await AsyncStorage.getItem('@usr_id');
+                                const grp_id = await AsyncStorage.getItem('@grp_id');
+
+                                carregaMensagens(usr_id, grp_id, participantes._usuario._id, 'usuario');
+
+                                navigation.navigate('Mensagens', {
+                                    page_title: participantes._usuario._nome,
+                                    screen: 'Mensagens',
+                                    params: {
+                                        usr_id,
+                                        grp_id,
+                                        codDestino: participantes._usuario._id,
+                                        tipoDestino: 'usuario'
+                                    }
+                                });
+
+                            }}>
+                                <Item 
+                                    contentName={participantes._usuario._nome}
+                                    imageUri={`https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRFhrrvfepbkqfpP09yKEn7jr4ZXO7ML8DLiw&usqp=CAU`}
+                                    withMessage={participantes._usuario._possui_novas_mensagens}
+                                    obs={`${parseInt(participantes._usuario._nivel_acesso) === 1 ? 'Monitor' : 'Paciente'}`}/>
+                            </TouchableOpacity>);
+                                    
+                        } else 
+                            return;
 
                     })}
 
@@ -200,9 +209,9 @@ export default function Conversas({ route, navigation }) {
 
 function Item(props) {
     return (
-        <View style={{ flexDirection: 'row', backgroundColor: '#F5F5F5' }}>
+        <View style={props.withMessage === 'S' ? { flexDirection: 'row', backgroundColor: '#E3F2FD' } : { flexDirection: 'row', backgroundColor: '#F5F5F5' } }>
             <Avatar.Image size={50} source={{ uri: props.imageUri }} />
-            <View style={styles.viewInfoConteudos}>
+            <View style={ props.withMessage === 'S' ? styles.viewInfoConteudosComMensagem : styles.viewInfoConteudos }>
                 <Text style={styles.textTitleContent}>{props.contentName}</Text>
                 <Text style={styles.secondaryText}>{props.obs}</Text>
             </View>
@@ -210,6 +219,13 @@ function Item(props) {
         </View>
     );
 }
+
+const mapStateToProps = state => ({
+    io: state.ChatMessage.io,
+    messages: state.ChatMessage.messages,
+});
+
+export default connect(mapStateToProps, { carregaMensagens })(Conversas);
 
 const styles = StyleSheet.create({
   scrollViewContainer: {
@@ -266,8 +282,24 @@ const styles = StyleSheet.create({
       alignItems: "flex-start",
       padding: 10
   },
+  buttonListItemWithMessage: {
+    width: width * 0.9,
+    height: 90,
+    backgroundColor: '#E3F2FD',
+    borderBottomWidth: 1,
+    borderBottomColor: '#B0BEC5',
+    justifyContent: "center",
+    alignItems: "flex-start",
+    padding: 10
+  },
   viewInfoConteudos: {
     backgroundColor: '#F5F5F5',
+    width: width * 0.60,
+    paddingHorizontal: 10,
+    justifyContent: 'space-around',
+  },
+  viewInfoConteudosComMensagem: {
+    backgroundColor: '#E3F2FD',
     width: width * 0.60,
     paddingHorizontal: 10,
     justifyContent: 'space-around',

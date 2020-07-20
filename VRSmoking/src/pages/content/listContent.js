@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-community/async-storage';
 import {
     View,
     StyleSheet,
     Text,
     Dimensions,
     ScrollView,
-    TouchableOpacity
+    TouchableOpacity,
+    Linking
 } from 'react-native';
-import api from '../../services/api';
+import Api from '../../services/api';
 
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
 import { Base64 } from 'js-base64';
+
+// Importações para manipulação do REDUX
+// ===================================================================
+import { connect } from 'react-redux';
+// ===================================================================
 
 // Importando estilos
 import generalStyle from '../../assets/styles/general';
@@ -28,90 +35,131 @@ import ModalLoading from '../../components/modal/loading/';
 
 const { width, height } = Dimensions.get('window');
 
-export default function ListContent({ route, navigation }) {
+let auxContent = [];
 
-    const [contents, setContents] = useState([]);
+const ListContent = ({ navigation, route, contents }) => {
+
+    const [conteudos, setConteudos] = useState([]);
     const [visibleModal, setVisibleModal] = useState(``);
     const [msgModal, setMsgModal] = useState(``);
 
     useEffect(() => {
 
-        // Validar se o usuário está logado...
+        auxContent = contents;
+
+        let itens_atividade = auxContent;
+        let vetContents = [];
         
-    }, []);
+        let contador = 0;
+        
+        if(String(route.name).toLowerCase() === `pdf`) {
+
+            for (let i = 0; i < itens_atividade.length; i++)
+                if (String(itens_atividade[i]._conteudo._extensao).toLowerCase() === '.pdf')
+                    vetContents.push({ index: contador++, nomeArq: itens_atividade[i]._conteudo._titulo, dataUpload: itens_atividade[i]._conteudo._data_upload, url: URL.VRSMOKING_API + `/conteudo/obterArquivoPorIdeNome/`+ itens_atividade[i]._conteudo._id + `/` + itens_atividade[i]._conteudo._nome_arquivo, extension: String(itens_atividade[i]._conteudo._extensao).toLowerCase() });
+                    
+        } else if (String(route.name).toLowerCase() === `vr`) {
+
+            for (let i = 0; i < itens_atividade.length; i++)
+                if (String(itens_atividade[i]._conteudo._extensao).toLowerCase() === '.html')
+                    vetContents.push({ index: contador++, nomeArq: itens_atividade[i]._conteudo._titulo, dataUpload: itens_atividade[i]._conteudo._data_upload, url: URL.VRSMOKING_API + `/conteudo/`+ itens_atividade[i]._conteudo._id + `/` + itens_atividade[i]._conteudo._nome_arquivo, extension: String(itens_atividade[i]._conteudo._extensao).toLowerCase() });
+
+        } else if (String(route.name).toLowerCase() === `vídeo`) {
+
+            for (let i = 0; i < itens_atividade.length; i++)
+                if (String(itens_atividade[i]._conteudo._extensao).toLowerCase() !== '.pdf' && String(itens_atividade[i]._conteudo._extensao).toLowerCase() !== '.html')
+                    vetContents.push({ index: contador++, nomeArq: itens_atividade[i]._conteudo._titulo, dataUpload: itens_atividade[i]._conteudo._data_upload, url: URL.VRSMOKING_API + `/conteudo/obterArquivoPorIdeNome/`+ itens_atividade[i]._conteudo._id + `/` + itens_atividade[i]._conteudo._nome_arquivo, extension: String(itens_atividade[i]._conteudo._extensao).toLowerCase() });
+                
+        } else {
+            for (let i = 0; i < itens_atividade.length; i++) {
+                
+                if (String(itens_atividade[i]._conteudo._extensao).toLowerCase() === '.html')
+                    vetContents.push({ index: contador++, nomeArq: itens_atividade[i]._conteudo._titulo, dataUpload: itens_atividade[i]._conteudo._data_upload, url: URL.VRSMOKING_API + `/conteudo/`+ itens_atividade[i]._conteudo._id + `/` + itens_atividade[i]._conteudo._nome_arquivo, extension: String(itens_atividade[i]._conteudo._extensao).toLowerCase() });
+                else
+                    vetContents.push({ index: contador++, nomeArq: itens_atividade[i]._conteudo._titulo, dataUpload: itens_atividade[i]._conteudo._data_upload, url: URL.VRSMOKING_API + `/conteudo/obterArquivoPorIdeNome/`+ itens_atividade[i]._conteudo._id + `/` + itens_atividade[i]._conteudo._nome_arquivo, extension: String(itens_atividade[i]._conteudo._extensao).toLowerCase() });
+            }
+        }
+
+        setConteudos(vetContents);
+
+    }, [contents]);
 
     useEffect(() => {
 
-        const unsubscribe = navigation.addListener('focus', async e => {
+        const unsubscribe = navigation.addListener('focus', e => {
 
-            try {
+            let renderContents = async () => {
 
-                setVisibleModal('loading');
+                let itens_atividade = auxContent;
+                let vetContents = [];
+                
+                let contador = 0;
+                
+                if(String(route.name).toLowerCase() === `pdf`) {
 
-                let erro = ``;
+                    for (let i = 0; i < itens_atividade.length; i++)
+                        if (String(itens_atividade[i]._conteudo._extensao).toLowerCase() === '.pdf')
+                            vetContents.push({ index: contador++, nomeArq: itens_atividade[i]._conteudo._titulo, dataUpload: itens_atividade[i]._conteudo._data_upload, url: URL.VRSMOKING_API + `/conteudo/obterArquivoPorIdeNome/`+ itens_atividade[i]._conteudo._id + `/` + itens_atividade[i]._conteudo._nome_arquivo, extension: String(itens_atividade[i]._conteudo._extensao).toLowerCase() });
+                            
+                } else if (String(route.name).toLowerCase() === `vr`) {
 
-                const response = await api.get(`/atividade/ObterCompletoPorId/${route.params.atividade}`);
+                    for (let i = 0; i < itens_atividade.length; i++)
+                        if (String(itens_atividade[i]._conteudo._extensao).toLowerCase() === '.html')
+                            vetContents.push({ index: contador++, nomeArq: itens_atividade[i]._conteudo._titulo, dataUpload: itens_atividade[i]._conteudo._data_upload, url: URL.VRSMOKING_API + `/conteudo/`+ itens_atividade[i]._conteudo._id + `/` + itens_atividade[i]._conteudo._nome_arquivo, extension: String(itens_atividade[i]._conteudo._extensao).toLowerCase() });
 
-                if (response.data._mensagem) {
-                    erro = response.data._mensagem;
-                } else if (response.data._erros.length > 0) {
-                    erro = `Falha ao obter os conteúdos da atividade`;
-                } else {
+                } else if (String(route.name).toLowerCase() === `vídeo`) {
 
-                    let result = response.data._result;
-
-                    if (result.length > 0) {
-
-                        let itens_atividade = result[0]._itens_atividade;
-                        let vetContents = [];
-
-                        let contador = 0;
+                    for (let i = 0; i < itens_atividade.length; i++)
+                        if (String(itens_atividade[i]._conteudo._extensao).toLowerCase() !== '.pdf' && String(itens_atividade[i]._conteudo._extensao).toLowerCase() !== '.html')
+                            vetContents.push({ index: contador++, nomeArq: itens_atividade[i]._conteudo._titulo, dataUpload: itens_atividade[i]._conteudo._data_upload, url: URL.VRSMOKING_API + `/conteudo/obterArquivoPorIdeNome/`+ itens_atividade[i]._conteudo._id + `/` + itens_atividade[i]._conteudo._nome_arquivo, extension: String(itens_atividade[i]._conteudo._extensao).toLowerCase() });
                         
-                        if(String(route.name).toLowerCase() === `pdf`) {
-
-                            for (let i = 0; i < itens_atividade.length; i++)
-                                if (String(itens_atividade[i]._conteudo._extensao).toLowerCase() === '.pdf')
-                                    vetContents.push({ index: contador++, nomeArq: itens_atividade[i]._conteudo._titulo, dataUpload: itens_atividade[i]._conteudo._data_upload, url: URL.VRSMOKING_API + `/conteudo/obterArquivoPorIdeNome/`+ itens_atividade[i]._conteudo._id + `/` + itens_atividade[i]._conteudo._nome_arquivo, extension: String(itens_atividade[i]._conteudo._extensao).toLowerCase() });
-                                    
-                        } else if (String(route.name).toLowerCase() === `vr`) {
-
-                            for (let i = 0; i < itens_atividade.length; i++)
-                                if (String(itens_atividade[i]._conteudo._extensao).toLowerCase() === '.html')
-                                    vetContents.push({ index: contador++, nomeArq: itens_atividade[i]._conteudo._titulo, dataUpload: itens_atividade[i]._conteudo._data_upload, url: URL.VRSMOKING_API + `/conteudo/obterArquivoPorIdeNome/`+ itens_atividade[i]._conteudo._id + `/` + itens_atividade[i]._conteudo._nome_arquivo, extension: String(itens_atividade[i]._conteudo._extensao).toLowerCase() });
-
-                        } else if (String(route.name).toLowerCase() === `vídeo`) {
-
-                            for (let i = 0; i < itens_atividade.length; i++)
-                                if (String(itens_atividade[i]._conteudo._extensao).toLowerCase() !== '.pdf' && String(itens_atividade[i]._conteudo._extensao).toLowerCase() !== '.html')
-                                    vetContents.push({ index: contador++, nomeArq: itens_atividade[i]._conteudo._titulo, dataUpload: itens_atividade[i]._conteudo._data_upload, url: URL.VRSMOKING_API + `/conteudo/obterArquivoPorIdeNome/`+ itens_atividade[i]._conteudo._id + `/` + itens_atividade[i]._conteudo._nome_arquivo, extension: String(itens_atividade[i]._conteudo._extensao).toLowerCase() });
-                                
-                        } else {
-                            for (let i = 0; i < itens_atividade.length; i++)
-                                vetContents.push({ index: contador++, nomeArq: itens_atividade[i]._conteudo._titulo, dataUpload: itens_atividade[i]._conteudo._data_upload, url: URL.VRSMOKING_API + `/conteudo/obterArquivoPorIdeNome/`+ itens_atividade[i]._conteudo._id + `/` + itens_atividade[i]._conteudo._nome_arquivo, extension: String(itens_atividade[i]._conteudo._extensao).toLowerCase() });
-                        }
-
-                        setContents(vetContents);
-
+                } else {
+                    for (let i = 0; i < itens_atividade.length; i++) {
+                        
+                        if (String(itens_atividade[i]._conteudo._extensao).toLowerCase() === '.html')
+                            vetContents.push({ index: contador++, nomeArq: itens_atividade[i]._conteudo._titulo, dataUpload: itens_atividade[i]._conteudo._data_upload, url: URL.VRSMOKING_API + `/conteudo/`+ itens_atividade[i]._conteudo._id + `/` + itens_atividade[i]._conteudo._nome_arquivo, extension: String(itens_atividade[i]._conteudo._extensao).toLowerCase() });
+                        else
+                            vetContents.push({ index: contador++, nomeArq: itens_atividade[i]._conteudo._titulo, dataUpload: itens_atividade[i]._conteudo._data_upload, url: URL.VRSMOKING_API + `/conteudo/obterArquivoPorIdeNome/`+ itens_atividade[i]._conteudo._id + `/` + itens_atividade[i]._conteudo._nome_arquivo, extension: String(itens_atividade[i]._conteudo._extensao).toLowerCase() });
                     }
-
                 }
 
-                if (erro !== ``) {
-                    setMsgModal(erro);
-                    setVisibleModal(`danger`);
-                } else 
-                    setVisibleModal(``);
+                setConteudos(vetContents);
 
-            } catch (e) {
-                setMsgModal(`Falha ao obter os conteúdos da atividade`);
-                setVisibleModal(`danger`);
-            }
-                
+            };
+
+            let checkLoggedUser = async () => {
+
+                try {
+          
+                  const token = await AsyncStorage.getItem('@usr_token');
+          
+                  if(token) {
+          
+                    const response = await Api.post('/usuario/mobile/verifyToken', {
+                        token
+                    });
+        
+                    if (response.data._mensagem || response.data._erros.length > 0) 
+                        navigation.navigate('Login');
+                    else
+                        renderContents();
+          
+                  } else
+                      navigation.navigate('Login');
+          
+                } catch (e) {
+                  navigation.navigate('Login');
+                }
+          
+            };
+          
+            checkLoggedUser();
+
         });
       
         return unsubscribe;
 
-    }, [navigation]);
+    }, [route]);
 
     return (
         <>
@@ -125,35 +173,52 @@ export default function ListContent({ route, navigation }) {
 
             <ScrollView style={styles.scrollViewContainer}>
                 <View style={styles.viewContainerList}>
-                    {contents.length > 0 && contents.map(content => (
+                    {conteudos.length > 0 && conteudos.map(content => {
 
-                        <TouchableOpacity key={content.index} style={styles.buttonListItem} onPress={() => navigation.navigate('Viewer', {
-                            uri: content.url, 
-                            extension: content.extension
-                        }) }>
+                        // if (content.extension === '.html') {
 
-                            {
-                                content.extension === '.pdf' ? 
-                                    <Item 
-                                        contentName={content.nomeArq}
-                                        obs={'Documento do tipo texto'}
-                                        fileIcon={'library-books'}/>
-                                :
-                                    content.extension === '.html' ?
-                                        <Item
+                        //     return (
+                        //         <TouchableOpacity key={content.index} style={styles.buttonListItem} onPress={() => Linking.openURL(content.url) }>
+
+                        //             <Item
+                        //                 contentName={content.nomeArq}
+                        //                 obs={'Ambiente Virtual'}
+                        //                 fileIcon={'ondemand-video'}/>
+                                         
+                        //         </TouchableOpacity>
+                        //     );
+
+                        //} else {
+
+                            return (<TouchableOpacity key={content.index} style={styles.buttonListItem} onPress={() => navigation.navigate('Viewer', {
+                                uri: content.url, 
+                                extension: content.extension
+                            }) }>
+    
+                                {
+                                    content.extension === '.pdf' ? 
+                                        <Item 
                                             contentName={content.nomeArq}
-                                            obs={'Ambiente Virtual'}
-                                            fileIcon={'ondemand-video'}/>
+                                            obs={'Documento do tipo texto'}
+                                            fileIcon={'library-books'}/>
                                     :
-                                        <Item
-                                            contentName={content.nomeArq}
-                                            obs={'Arquivo de Vídeo'}
-                                            fileIcon={'play-circle-outline'}/>
-                            }
+                                        content.extension === '.html' ?
+                                            <Item
+                                                contentName={content.nomeArq}
+                                                obs={'Ambiente Virtual'}
+                                                fileIcon={'ondemand-video'}/>
+                                        :
+                                            <Item
+                                                contentName={content.nomeArq}
+                                                obs={'Arquivo de Vídeo'}
+                                                fileIcon={'play-circle-outline'}/>
+                                }
+    
+                            </TouchableOpacity>)
 
-                        </TouchableOpacity>
+                        //}
 
-                    ))}
+                        })}
                 </View>  
                 
                 <ModalDanger
@@ -184,6 +249,14 @@ function Item(props) {
         </View>
     );
 }
+
+const mapStateToProps = state => {
+  return ({
+    contents: state.Content.contents
+  })
+};
+
+export default connect(mapStateToProps)(ListContent);
 
 const styles = StyleSheet.create({
     scrollViewContainer: {

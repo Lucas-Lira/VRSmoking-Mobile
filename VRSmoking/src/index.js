@@ -2,6 +2,12 @@ import React from 'react';
 import Routes from './routes';
 import { YellowBox } from 'react-native';
 
+// Adicionado o provider do Redux, com essa configuração é possível permitir que todas as funcionalidades do aplicativo tenha acesso aos estados
+import { Provider } from 'react-redux';
+// Importando o store da aplicação
+import Store from './store/';
+
+
 YellowBox.ignoreWarnings([
     "Warning: Can't perform a React state update on an unmounted component.",
     "Warning: componentWillUpdate has been renamed, and is not recommended for use",
@@ -11,6 +17,10 @@ YellowBox.ignoreWarnings([
     "Picker has been extracted from react-native core and will be removed in a future release."
 ]);
 
-const Index = () => <Routes />;
+const Index = () => (
+    <Provider store={Store}>
+        <Routes />
+    </Provider>
+);
 
 export default Index;
